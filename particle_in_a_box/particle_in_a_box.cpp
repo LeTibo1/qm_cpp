@@ -34,7 +34,11 @@ namespace units {
 
 template<typename... Args>
 void print(Args&&... args) {
-	((cout << args), ...);
+	((cout << args), ..., (cout << "\n"));
+}
+
+void err_msg(string message) {
+	print("Error: ", message);
 }
 
 template <typename T>
@@ -86,15 +90,16 @@ class ParticleInABox {
 		// set functions
 		void set_length(double new_length) {
 			length = new_length * 10e-9;
-			print("New length is set to: ", round_to(new_length, 2), " nm\n");
+			print("New length is set to: ", round_to(new_length, 2), " nm");
 		}
 		void set_unit() {
 			int choice;
-			print("Select the number of the unit for the energy output:\n");
+			print("Select the number of the unit for the energy output:");
 			for (int i = 0; i < units::names.size(); i++) {
-				print(i, " ", units::names.at(i), "\n");
+				print(" ", i, " - ", units::names.at(i));
 			}
 
+			cout << "Your Input: ";
 			cin >> choice;
 			unit = units::names.at(choice);
 			print("Energy will be displayed in ", unit);
@@ -111,21 +116,102 @@ class ParticleInABox {
 			} else if (n == 3) {
 				grade = "3rd";
 			}
-			print("The energy of the ", grade, " state of the particle is: ", energy, unit, "\n");
+			print("The energy of the ", grade, " state of the particle is: ", energy, unit);
 		}
 };
 
+// ====================================
+//           - print functions -
+// ====================================
+
+void print_starting_menu() {
+	vector<string> menu {
+		"--------------------------------",
+		"Choose an option:",
+		" 1 - 'create a new particle'",
+		" 2 - 'interact with particle'",
+		" 3 - 'delete particle'",
+		" 4 - 'exit program'",
+	};
+
+	for (int i = 0; i < menu.size(); i++) {
+		print(menu.at(i));
+	}
+}
+
+void print_particle_menu() {
+	vector<string> menu {
+		"--------------------------------",
+		"Choose an option:",
+		" 0 - 'back to main menu'",
+		" 1 - 'set length of the box'",
+		" 2 - 'set unit of the energy'",
+		" 3 - 'get energy of a given state'",
+	};
+
+	for (int i = 0; i < menu.size(); i++) {
+		print(menu.at(i));
+	}
+}
+
+void particle_menu(ParticleInABox& particle) {
+	while (true) {
+		print_particle_menu();
+		int choice;
+		cout << "Your choice: ";
+		cin >> choice;
+
+		if (choice == 0) {
+			break;
+		} else if (choice == 1) {
+			double length;
+			cout << "Enter length of the box in [nm]: ";
+			cin >> length;
+			particle.set_length(length);
+		} else if (choice == 2) {
+			particle.set_unit();
+		} else if (choice == 3) {
+			int n;
+			cout << "Enter number of state: ";
+			cin >> n;
+			particle.get_energy(n);
+		}
+	}
+}
+    
 // ====================================
 //           - main function -
 // ====================================
 
 int main() {
-    double length;
-    print("Length of the box in [nm]: ");
-    cin >> length;
-    ParticleInABox particle_1; 
-    particle_1.set_length(length);
-    particle_1.get_energy(2);
-    return 0;
+	print("WELCOME TO THE PARTICLE IN A BOX PROGRAM ;)");
+	bool is_created = false;
+	// unique lässt nur ein Objekt gleichzeitig zu.
+	// schlecht, falls man programm erweitern will
+	// um mehrere Objekte zu erlauben
+	unique_ptr<ParticleInABox> particle;
+	void particle_menu(ParticleInABox& particle);
+	while (true) {
+		int choice;
+		print_starting_menu();
+		cout << "Your choice: ";
+		cin >> choice;
+
+		if (choice == 1) {
+			particle = make_unique<ParticleInABox>();
+			print("A new particle has been created in the box");
+			is_created = true;
+		} else if (choice == 2) {
+			if (is_created) {
+				particle_menu(*particle);
+			} else {err_msg("Particle has not been created yet. First create a particle");}
+		} else if (choice == 3) {
+			if (!is_created) {err_msg("Particle has not been created yet. First create a particle");}
+			is_created = false;
+			particle.reset();
+		} else if (choice == 4) {break;}
+	}
+
+	return 0;
 } 
 
