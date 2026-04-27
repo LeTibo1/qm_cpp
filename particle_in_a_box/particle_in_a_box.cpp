@@ -7,13 +7,13 @@ namespace phys_const {
     const double h = 6.626e-34;
     const double h_bar = h/(2*M_PI);  
 }
-
 using namespace phys_const;
+
 class ParticleInABox {
     private:
 
     float length;
-    float mass;   
+    float mass = 1,6735575*10e-27;   
     float h_bar = h/(2*M_PI);
     
     public:
